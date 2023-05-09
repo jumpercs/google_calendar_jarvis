@@ -1,8 +1,8 @@
 
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 dotenv.config({});
-import express from 'express';
-import { google } from 'googleapis';
+import express from "express";
+import { google } from "googleapis";
 
 const app = express();
 
@@ -16,14 +16,14 @@ const oauth2Client = new google.auth.OAuth2(
 );
 
 const scopes = [
-    'https://www.googleapis.com/auth/calendar',
+    "https://www.googleapis.com/auth/calendar",
 ];
-
-app.get('/google', (req, res) => {
+const token = "";
+app.get("/google", (req, res) => {
 
 
     const url = oauth2Client.generateAuthUrl({
-        access_type: 'offline',
+        access_type: "offline",
         scope: scopes,
     });
 
@@ -31,62 +31,62 @@ app.get('/google', (req, res) => {
 });
 
 
-app.get('/google/redirect', async (req, res) => {
-    const { code } = req.query;
+app.get("/google/redirect", async (req, res) => {
+    const code = req.query.code;
 
-    if (!code) {
-        res.send('Code not found');
-        return;
-    }
+    const { tokens } = await oauth2Client.getToken(code);
+    oauth2Client.setCredentials(tokens);
+
+    res.send({
+        message: "You have successfully logged in.",
+    })
+
+
+
+});
+
+
+const calendar = google.calendar({ version: "v3", auth: process.env.API_KEY });
+
+app.get("/schedule_event", async (req, res) => {
+
+
+    const event = {
+        summary: req.query.summary,
+        location: req.query.location,
+        description: req.query.description,
+        colorId: 1,
+        start: {
+            dateTime: req.query.start,
+            timeZone: "America/Denver",
+        },
+        end: {
+            dateTime: req.query.end,
+            timeZone: "America/Denver",
+        },
+    };
 
     try {
-        const { tokens } = await oauth2Client.getToken(code.toString());
-        oauth2Client.setCredentials(tokens);
-
-        const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-
-        const event = {
-            summary: 'TESTE BOLADO',
-            location: 'tem que ser um lugar',
-            description: 'alguma descrição zika do bagui',
-            start: {
-                dateTime: '2023-06-28T09:00:00-07:00',
-                timeZone: 'America/Los_Angeles',
-            },
-            end: {
-                dateTime: '2023-06-28T17:00:00-07:00',
-                timeZone: 'America/Los_Angeles',
-            },
-            recurrence: [
-                'RRULE:FREQ=DAILY;COUNT=2'
-            ],
-            attendees: [
-                { email: 'mario.igor.98@gmail.com' },
-                { email: 'desenhismooficial@gmail.com' },
-                { email: 'robertolokhiroshi@gmail.com' }
-
-            ],
-            reminders: {
-                useDefault: false,
-                overrides: [
-                    { method: 'email', minutes: 24 * 60 },
-                    { method: 'popup', minutes: 10 },
-                ],
-            },
-        };
-
-        const result = await calendar.events.insert({
-            calendarId: 'primary',
+        const calendarResponse = await calendar.events.insert({
+            calendarId: "primary",
             resource: event,
+            auth: oauth2Client,
+
         });
 
-        console.log(result.data.htmlLink);
-        res.send(result.data.htmlLink);
-    } catch (error) {
-        console.log(error);
-        res.send(error.message);
+        res.send({
+            message: "Successfully added event to calendar",
+            calendarResponse,
+        });
+    } catch (err) {
+        console.log(err);
+        res.send({
+            message: `There was an error adding the event to the calendar: ${err.message}`,
+        });
     }
 });
+
+
 
 
 
