@@ -3,11 +3,21 @@ import dotenv from "dotenv";
 dotenv.config({});
 import express from "express";
 import { google } from "googleapis";
-
+import cors from "cors";
 const app = express();
 
 const PORT = process.env.PORT || 3000;
 
+
+//allow cors origin
+
+app.use(cors());
+
+
+app.use((req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    next();
+});
 
 const oauth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
@@ -26,9 +36,23 @@ app.get("/google", (req, res) => {
         access_type: "offline",
         scope: scopes,
     });
+    console.log(url);
+    summary = req.query.summary;
+    location = req.query.location;
+    description = req.query.description;
+    start = req.query.start;
+    end = req.query.end;
+    color = req.query.color;
 
     res.redirect(url);
 });
+
+let summary = "";
+let location = "";
+let description = "";
+let start = "";
+let end = "";
+let color = "";
 
 
 app.get("/google/redirect", async (req, res) => {
@@ -37,9 +61,41 @@ app.get("/google/redirect", async (req, res) => {
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
 
-    res.send({
-        message: "You have successfully logged in.",
-    })
+    console.log(req);
+
+    res.send(`
+    <html>
+    <head>
+    <title>Agendar Evento</title>
+    </head>
+    <body>
+    <h1>Clique no botão para agendar um evento</h1>
+    <div>
+    <h2>Evento</h2>
+    <p>Titulo: ${summary}</p>
+    <p>Local: ${location}</p>
+    <p>Descrição: ${description}</p>
+    <p>Data de Inicio: ${start}</p>
+    <p>Data de Fim: ${end}</p>
+    <p>Cor: ${color}</p>
+
+    </div>
+    <form action="/schedule_event" method="GET">
+    <input type="hidden" name="summary" value="${summary}">
+    <input type="hidden" name="location" value="${location}">
+    <input type="hidden" name="description" value="${description}">
+    <input type="hidden" name="start" value="${start}">
+    <input type="hidden" name="end" value="${end}">
+    <input type="hidden" name="color" value="${color}">
+
+    <input type="submit" value="Agendar Evento">
+    </form>
+    </body>
+    </html>
+
+    `);
+
+
 
 
 
@@ -58,12 +114,10 @@ app.get("/schedule_event", async (req, res) => {
         colorId: 1,
         start: {
             dateTime: req.query.start,
-            timeZone: "America/Denver",
         },
         end: {
             dateTime: req.query.end,
-            timeZone: "America/Denver",
-        },
+        }, colorId: req.query.color,
     };
 
     try {
@@ -74,10 +128,20 @@ app.get("/schedule_event", async (req, res) => {
 
         });
 
-        res.send({
-            message: "Successfully added event to calendar",
-            calendarResponse,
-        });
+        // return a html with sucess message and one button to close the tab
+        res.send(`
+        <html>
+        <head>
+        <title>Agendar Evento</title>
+        </head>
+        <body>
+        <h1>Evento agendado com sucesso</h1>
+        <button onclick="window.close()">Fechar</button>
+        </body>
+        </html>
+
+        `);
+
     } catch (err) {
         console.log(err);
         res.send({
