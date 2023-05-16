@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Agendar Evento</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    <script>
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear().toString();
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        return `${day}/${month}/${year} ${hours}:${minutes}`;
+    };
+
+    const startElement = document.getElementById('start');
+    const endElement = document.getElementById('end');
+
+    startElement.textContent = formatDate(startElement.textContent);
+    endElement.textContent = formatDate(endElement.textContent);
+</script>
+</head>
+<body class="bg-light d-flex align-items-center justify-content-center" style="min-height: 100vh;">
+    <div class="bg-white p-5 rounded-lg shadow" style="max-width: 600px; width: 100%;">
+        <h1 class="text-center mb-4">Clique no botão para agendar um evento</h1>
+        <div class="mb-4">
+            <h2 class="font-weight-bold mb-3">Detalhes do Evento</h2>
+            <div class="form-group row">
+                <label for="summary" class="col-sm-4 col-form-label font-weight-bold">Título:</label>
+                <div class="col-sm-8">
+                    <p class="form-control-plaintext" id="summary">${summary}</p>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="location" class="col-sm-4 col-form-label font-weight-bold">Local:</label>
+                <div class="col-sm-8">
+                    <p class="form-control-plaintext" id="location">${location}</p>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="description" class="col-sm-4 col-form-label font-weight-bold">Descrição:</label>
+                <div class="col-sm-8">
+                    <p class="form-control-plaintext" id="description">${description}</p>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="start" class="col-sm-4 col-form-label font-weight-bold">Data de Início:</label>
+                <div class="col-sm-8">
+                    <p class="form-control-plaintext" id="start">${moment(start).format('DD/MM/YYYY HH:mm')}</p>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="end" class="col-sm-4 col-form-label font-weight-bold">Data de Fim:</label>
+                <div class="col-sm-8">
+                    <p class="form-control-plaintext" id="end">${moment(end).format('DD/MM/YYYY HH:mm')}</p>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="color" class="col-sm-4 col-form-label font-weight-bold">Cor:</label>
+                <div class="col-sm-8">
+                    <p class = "form-control-plaintext" id="color">${color}</p>
+                </div>
+            </div>
+        </div>
+        <div class="text-center">
+            <a href="/schedule_event" class="btn btn-primary">Agendar Evento</a>
+        </div>
+    </div>
+</body>
+
+</html>
+
